@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Multi-Shape Image Effects</title>
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #1e3c72, #2a5298);
+      color: white;
+      font-family: Arial, sans-serif;
+    }
+
+    .container {
+      perspective: 1000px; 
+      margin-top: 20px;
+    }
+
+    img {
+      width: 300px;
+      height: 300px;
+      object-fit: cover;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+      transition: transform 0.8s ease, filter 0.5s ease;
+      animation: float 3s infinite ease-in-out;
+    }
+
+   
+    img:hover {
+      filter: brightness(120%) contrast(110%);
+      transform: scale(1.1) rotate(5deg);
+    }
+
+    
+    .rotate {
+      transform: rotateY(180deg) rotateX(15deg);
+    }
+
+    
+    @keyframes float {
+      0%   { transform: translateY(0px); }
+      50%  { transform: translateY(-15px); }
+      100% { transform: translateY(0px); }
+    }
+
+    
+    .hexagon {
+      clip-path: polygon(
+        50% 0%, 93% 25%, 93% 75%, 
+        50% 100%, 7% 75%, 7% 25%
+      );
+    }
+
+    .polygon {
+      clip-path: polygon(
+        50% 0%, 100% 38%, 82% 100%, 
+        18% 100%, 0% 38%
+      );
+    }
+
+    .rectangle {
+      clip-path: inset(0% 0% 0% 0%);
+    }
+
+
+    .buttons {
+      margin-top: 20px;
+    }
+
+    button {
+      margin: 5px;
+      padding: 10px 15px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      background: #fff;
+      color: #000;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>Multi-Shape Image Effects</h1>
+  <input type="file" id="upload" accept="image/*">
+  
+  <div class="container">
+    <img id="preview" src="" alt="Upload an image">
+  </div>
+
+  <div class="buttons">
+    <button onclick="setShape('hexagon')">Hexagon</button>
+    <button onclick="setShape('polygon')">Polygon</button>
+    <button onclick="setShape('rectangle')">Rectangle</button>
+  </div>
+
+  <script>
+    const upload = document.getElementById("upload");
+    const preview = document.getElementById("preview");
+
+    
+    upload.addEventListener("change", (event) => {
+      const file = event.target.files[0];
+      if (file) {
+        preview.src = URL.createObjectURL(file);
+      }
+    });
+
+    
+    preview.addEventListener("click", () => {
+      preview.classList.toggle("rotate");
+    });
+
+    
+    function setShape(shape) {
+      preview.className = shape;
+    }
+  </script>
+</body>
+</html>
