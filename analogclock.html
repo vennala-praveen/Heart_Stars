@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Analog Clock</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #05070b;
+      font-family: Arial, Helvetica, sans-serif;
+      overflow: hidden;
+    }
+
+    /* Main window */
+    .window {
+      width: min(92vw, 430px);
+      aspect-ratio: 1 / 1;
+      background: #050505;
+      border: 1px solid #34383f;
+      border-radius: 12px;
+      box-shadow:0 12px 35px rgba(0, 0, 0, 0.5);
+      overflow: hidden;
+    }
+
+
+    /* Clock container */
+    .clock-area {
+      position: relative;
+      width: 100%;
+      height: calc(100% - 34px);
+      display: grid;
+      place-items: center;
+    }
+
+    canvas {
+      width: 92%;
+      height: 92%;
+      display: block;
+    }
+
+    /* Digital time */
+    .digital {
+      position: absolute;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: #777;
+      font-size: 12px;
+      letter-spacing: 1px;
+    }
+  </style>
+</head>
+
+<body>
+
+    <div class="window">
+
+        <div>
+            
+        </div>
+
+        <!-- Clock -->
+        <div class="clock-area">
+        <canvas id="clock"></canvas>
+        <div
+            class="digital"
+            id="digital">
+        </div>
+        </div>
+
+    </div>
+
+
+<script>
+
+    /*
+     * Get HTML elements
+     */
+    const canvas = document.getElementById("clock");
+    const ctx = canvas.getContext("2d");
+
+    const digital = document.getElementById("digital");
+
+
+    /*
+     * Make canvas sharp on high-DPI screens
+     */
+    function resizeCanvas() {
+
+      const rect = canvas.getBoundingClientRect();
+
+      const dpr = window.devicePixelRatio || 1;
+
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+
+      ctx.setTransform(dpr,0,0,dpr,0,0);
+    }
+
+
+    /*
+     * Draw complete clock
+     */
+    function drawClock() {
+
+      const width = canvas.clientWidth;
+      const height = canvas.clientHeight;
+
+      /*
+       * Clock radius
+       */
+      const radius =
+        Math.min(width, height) / 2 * 0.82;
+
+
+      /*
+       * Clear previous frame
+       */
+      ctx.clearRect(0,0,width,height);
+
+
+      /*
+       * Move origin to center
+       */
+      ctx.save();
+
+      ctx.translate(width / 2, height / 2);
+
+
+      /*
+       * =========================
+       * CLOCK FACE
+       * =========================
+       */
+
+      ctx.beginPath();
+      ctx.arc(0, 0, radius, 0, Math.PI * 2);
+      ctx.fillStyle = "#050505";
+      ctx.fill();
+
+      /*
+       * Outer circle
+       */
+      ctx.beginPath();
+      ctx.arc(0,0,radius,0,Math.PI * 2);
+      ctx.strokeStyle = "#f4f4f4";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+
+      /*
+       * =========================
+       * MINUTE TICKS
+       * =========================
+       */
+
+      for (let i = 0; i < 60; i++) {
+
+        /*
+         * Convert minute to radians
+         */
+        const angle =
+          i * Math.PI / 30;
+
+
+        /*
+         * Hour tick is longer
+         */
+        const isHour =
+          i % 5 === 0;
+
+
+        const outer =
+          radius - 3;
+
+        const inner =
+          radius -
+          (isHour ? 14 : 8);
+
+
+        /*
+         * Start point
+         */
+        const x1 =
+          Math.sin(angle) * inner;
+
+        const y1 =
+          -Math.cos(angle) * inner;
+
+
+        /*
+         * End point
+         */
+        const x2 =
+          Math.sin(angle) * outer;
+
+        const y2 =
+          -Math.cos(angle) * outer;
+
+
+        /*
+         * Draw tick
+         */
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.strokeStyle = "#dddddd";
+        ctx.lineWidth = isHour ? 2 : 1;
+        ctx.stroke();
+      }
+
+
+      /*
+       * =========================
+       * CLOCK NUMBERS
+       * =========================
+       */
+
+      ctx.fillStyle = "#f5f5f5";
+
+      ctx.font =`${Math.max(12,radius * 0.13)}px Arial`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+
+      /*
+       * Draw numbers 1 - 12
+       */
+      for (let number = 1; number <= 12; number++) {
+
+        /*
+         * Convert number to angle
+         */
+        const angle =
+          number * Math.PI / 6;
+
+
+        /*
+         * Distance from center
+         */
+        const distance =
+          radius - radius * 0.20;
+
+
+        /*
+         * Calculate position
+         */
+        const x =
+          Math.sin(angle) * distance;
+
+        const y =
+          -Math.cos(angle) * distance;
+
+
+        /*
+         * Draw number
+         */
+        ctx.fillText(number,x,y);
+      }
+
+
+      /*
+       * =========================
+       * CURRENT TIME
+       * =========================
+       */
+
+      const now = new Date();
+
+
+      /*
+       * Milliseconds
+       */
+      const milliseconds =
+        now.getMilliseconds();
+
+
+      /*
+       * Seconds including milliseconds
+       */
+      const seconds = now.getSeconds() + milliseconds / 1000;
+
+      /*
+       * Minutes including seconds
+       */
+      const minutes = now.getMinutes() + seconds / 60;
+
+      /*
+       * Hours including minutes
+       *
+       * Convert 24-hour time
+       * to 12-hour clock.
+       */
+      const hours = (now.getHours() % 12) + minutes / 60;
+
+      /*
+       * =========================
+       * DRAW HANDS
+       * =========================
+       */
+
+      /*
+       * Hour hand - BLUE
+       */
+      drawHand(hours * Math.PI / 6, radius * 0.52,"#1555ff",6);
+
+      /*
+       * Minute hand - RED
+       */
+      drawHand(minutes * Math.PI / 30, radius * 0.69, "#e61b23",4);
+
+      /*
+       * Second hand - GREEN
+       */
+      drawHand(seconds * Math.PI / 30, radius * 0.78,"#37d447",3);
+
+
+      /*
+       * =========================
+       * CENTER CIRCLE
+       * =========================
+       */
+
+      ctx.beginPath();
+      ctx.arc(0, 0, 6, 0, Math.PI * 2);
+      ctx.fillStyle = "#050505";
+      ctx.fill();
+      ctx.strokeStyle = "#bfc5cc";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+
+      digital.textContent =
+        now.toLocaleTimeString(
+          [],
+          {
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit"
+          }
+        );
+
+
+      ctx.restore();
+    }
+
+
+    /*
+     * =========================
+     * DRAW CLOCK HAND
+     * =========================
+     */
+
+    function drawHand(
+      angle,
+      length,
+      color,
+      width
+    ) {
+
+      ctx.save();
+
+
+      ctx.rotate(angle);
+      ctx.beginPath();
+      ctx.moveTo(0, 8);
+      ctx.lineTo(0,-length);
+      ctx.strokeStyle = color;
+      ctx.lineWidth = width
+      ctx.lineCap = "round";
+      ctx.stroke();
+      ctx.restore();
+    }
+
+
+    window.addEventListener(
+      "resize",
+      () => {
+
+        resizeCanvas();
+
+        drawClock();
+
+      }
+    );
+
+
+    resizeCanvas();
+
+    drawClock();
+
+
+    setInterval(
+      drawClock,
+      50
+    );
+
+  </script>
+
+</body>
+</html>
