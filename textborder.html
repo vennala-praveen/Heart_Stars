@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text Border</title>
+    <style>
+        .border-text{
+            font-size: clamp(3rem, 10vw, 6rem);
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 8px;
+            color: transparent;
+            -webkit-text-stroke: 1.5px #4a5568;
+            margin: 300px auto;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            cursor: default;
+            transition: all 0.3s ease;
+        }
+
+        .border-text:hover{
+            -webkit-text-stroke: 1.5px #718096;
+            color: rgba(225, 225, 225, 0.03);
+        }
+    </style>
+</head>
+<body>
+    
+    <div class="border-text">sung jinwoo</div>
+</body>
+</html>
